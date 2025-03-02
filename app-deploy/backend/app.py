@@ -1,68 +1,114 @@
-rom flask import Flask, request, jsonify
-import os
+import streamlit as st
 import requests
 import azure.cognitiveservices.speech as speechsdk
-from azure.ai.language import LanguageClient
-from azure.core.credentials import AzureKeyCredential
- 
-app = Flask(__name__)
- 
-# Set your keys and endpoints from environment variables
-TRANSLATOR_KEY = os.getenv('DEhHCE5cQjvgQKgGED6jnRXsHy35nitDr3s08vxI9vxFi2L4ZRKxJQQJ99BCAC8vTInXJ3w3AAAbACOGsQDG')
-TRANSLATOR_REGION = os.getenv('westus2')
-LANGUAGE_KEY = os.getenv('Efh0ZjH4GEbT6Efq7uzKW8ZFHYDivdLlAry1iatizJDsh0ptGE5rJQQJ99BCAC8vTInXJ3w3AAAaACOGD1Po')
-LANGUAGE_ENDPOINT = os.getenv('https://coglanguagedemo.cognitiveservices.azure.com/')
-SPEECH_KEY = os.getenv('2zmUjopIuml8BZ90sJrwhAVBmOpigL90C6sxRuskiTiP7Ubb8BTXJQQJ99BCAC8vTInXJ3w3AAAYACOGL6Ku')
-SPEECH_REGION = os.getenv('westus2')
- 
-# Function to detect the language of a given text using Azure Language Service
-def detect_language(text):
-    client = LanguageClient(endpoint=LANGUAGE_ENDPOINT, credential=AzureKeyCredential(LANGUAGE_KEY))
-    response = client.detect_language(text)
-    return response.primary_language.iso6391_name
- 
-# Function to translate text to a target language using Azure Translator
+import base64
+
+# ✅ Azure Credentials
+TRANSLATOR_KEY = "5L9TfuqNBF8G42lz7Uz5c9Uf5554SmZ7vCtiIFrxsaBk5DI0p1DLJQQJ99BCACMsfrFXJ3w3AAAbACOGn7OY"
+TRANSLATOR_ENDPOINT = "https://api.cognitive.microsofttranslator.com/translate"
+SPEECH_KEY = "FX6xRY5tlz8FUYchLJBQYCJd4SWHKlpODnXEwUaqP5YW0jf0cJPtJQQJ99BCACMsfrFXJ3w3AAAYACOGrL39"
+SPEECH_REGION = "westus3"
+
+# ✅ Available languages
+LANGUAGES = {
+    "English": "en",
+    "French": "fr",
+    "Spanish": "es",
+    "German": "de",
+    "Chinese": "zh",
+    "Japanese": "ja",
+    "Hindi": "hi",
+    "Arabic": "ar",
+    "Portuguese": "pt",
+    "Russian": "ru"
+}
+
+# ✅ Speech to Text Function
+def speech_to_text():
+    speech_config = speechsdk.SpeechConfig(subscription=SPEECH_KEY, region=SPEECH_REGION)
+    audio_config = speechsdk.audio.AudioConfig(use_default_microphone=True)
+    
+    recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config, audio_config=audio_config)
+    st.write("Listening... Speak now.")
+
+    result = recognizer.recognize_once()
+    
+    if result.reason == speechsdk.ResultReason.RecognizedSpeech:
+        return result.text
+    elif result.reason == speechsdk.ResultReason.NoMatch:
+        return "No speech recognized, please try again."
+    elif result.reason == speechsdk.ResultReason.Canceled:
+        return "Speech recognition canceled. Check your subscription key or region."
+
+
+# ✅ Text Translation Function
 def translate_text(text, target_language):
-    endpoint = f"https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to={target_language}"
     headers = {
         "Ocp-Apim-Subscription-Key": TRANSLATOR_KEY,
-        "Ocp-Apim-Subscription-Region": TRANSLATOR_REGION,
-        "Content-Type": "application/json"  # Ensure the correct content type
+        "Ocp-Apim-Subscription-Region": "westus3",
+        "Content-Type": "application/json"
     }
-    body = [{"Text": text}]
-    # Make the request to the Translator API
-    response = requests.post(endpoint, headers=headers, json=body)
-    # Ensure the response is successful
-    if response.status_code != 200:
-        return "Error in translation"
-    # Parse the translated text from the API response
-    translation = response.json()[0]["translations"][0]["text"]
-    return translation
- 
-# Function to convert text to speech using Azure Speech Service
-def text_to_speech(text):
-    speech_config = speechsdk.SpeechConfig(subscription=SPEECH_KEY, region=SPEECH_REGION)
-    audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True)
-    synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
-    synthesizer.speak_text_async(text).get()
- 
-@app.route("/translate", methods=["POST"])
-def translate():
-    data = request.json
-    input_text = data['text']
-    target_language = data['target_language']
-    # Detect the language of the input text using the Azure Language Service
-    detected_language = detect_language(input_text)
-    print(f"Detected Language: {detected_language}")
- 
-    # Translate the text to the target language using the Azure Translator service
-    translated_text = translate_text(input_text, target_language)
-    # Convert the translated text to speech using the Azure Speech service
-    text_to_speech(translated_text)
-    return jsonify({
-        "detectedLanguage": detected_language,
-        "translatedText": translated_text
-    })
- 
-if __name__ == "__main__":
-    app.run(debug=True)
+
+    params = {
+        "api-version": "3.0",
+        "to": target_language
+    }
+
+    body = [{"text": text}]
+    response = requests.post(TRANSLATOR_ENDPOINT, params=params, headers=headers, json=body)
+
+    if response.status_code == 200:
+        return response.json()[0]['translations'][0]['text']
+    else:
+        return f"Error: {response.status_code} - {response.text}"
+
+# ✅ Encode Image for Background
+def encode_image(image_path):
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode("utf-8")
+
+image_path = "kyndryl_838x472.jpg"  # Make sure to have an image in the working directory or provide full path
+image_base64 = encode_image(image_path)
+
+# ✅ Streamlit App
+st.markdown(f"""
+<style>
+    body {{
+        background: url('data:image/jpg;base64,{image_base64}') no-repeat center center fixed;
+        background-size: cover;
+        font-family: 'Arial', sans-serif;
+        color: white;
+    }}
+    .marquee {{
+        font-size: 20px;
+        font-weight: bold;
+        color: yellow;
+        white-space: nowrap;
+        overflow: hidden;
+        display: block;
+        width: 100%;
+        animation: marquee 10s linear infinite;
+    }}
+    @keyframes marquee {{
+        0% {{ transform: translateX(100%); }}
+        100% {{ transform: translateX(-100%); }}
+    }}
+</style>
+<div class='marquee'>🌍 Welcome to the Azure AI Translator & Speech Service! 🎤🌎</div>
+""", unsafe_allow_html=True)
+
+# Title of the page
+st.title("🌐 Azure Speech-to-Text & Translator")
+
+# Speech-to-Text
+if st.button("🎤 Start Speech Recognition"):
+    recognized_text = speech_to_text()
+    st.text_area("Recognized Speech", recognized_text, height=150)
+
+# Text Translation
+text_input = st.text_area("Enter or Speak Text to Translate", height=150)
+language_dropdown = st.selectbox("Select Language", list(LANGUAGES.keys()))
+
+if st.button("Translate"):
+    translated_text = translate_text(text_input, LANGUAGES[language_dropdown])
+    st.text_area("Translated Text", translated_text, height=150)
