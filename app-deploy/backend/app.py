@@ -8,12 +8,12 @@ from azure.core.credentials import AzureKeyCredential
 app = Flask(__name__)
 
 # Set your keys and endpoints from environment variables
-TRANSLATOR_KEY = os.getenv('AZURE_TRANSLATOR_KEY1')
-TRANSLATOR_REGION = os.getenv('AZURE_REGION1')
-LANGUAGE_KEY = os.getenv('AZURE_LANGUAGE_KEY1')
-LANGUAGE_ENDPOINT = os.getenv('AZURE_LANGUAGE_ENDPOINT1')
-SPEECH_KEY = os.getenv('AZURE_SPEECH_KEY1')
-SPEECH_REGION = os.getenv('AZURE_SPEECH_REGION1')
+TRANSLATOR_KEY = os.getenv('DEhHCE5cQjvgQKgGED6jnRXsHy35nitDr3s08vxI9vxFi2L4ZRKxJQQJ99BCAC8vTInXJ3w3AAAbACOGsQDG')
+TRANSLATOR_REGION = os.getenv('westus2')
+LANGUAGE_KEY = os.getenv('Efh0ZjH4GEbT6Efq7uzKW8ZFHYDivdLlAry1iatizJDsh0ptGE5rJQQJ99BCAC8vTInXJ3w3AAAaACOGD1Po')
+LANGUAGE_ENDPOINT = os.getenv('https://coglanguagedemo.cognitiveservices.azure.com/')
+SPEECH_KEY = os.getenv('2zmUjopIuml8BZ90sJrwhAVBmOpigL90C6sxRuskiTiP7Ubb8BTXJQQJ99BCAC8vTInXJ3w3AAAYACOGL6Ku')
+SPEECH_REGION = os.getenv('westus2')
 
 # Function to detect the language of a given text using Azure Language Service
 def detect_language(text):
