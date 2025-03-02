@@ -25,8 +25,8 @@ def detect_language(text):
 def translate_text(text, target_language):
     endpoint = f"https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to={target_language}"
     headers = {
-        "Ocp-Apim-Subscription-Key": TRANSLATOR_KEY,
-        "Ocp-Apim-Subscription-Region": TRANSLATOR_REGION
+        "Ocp-Apim-Subscription-Key": DEhHCE5cQjvgQKgGED6jnRXsHy35nitDr3s08vxI9vxFi2L4ZRKxJQQJ99BCAC8vTInXJ3w3AAAbACOGsQDG,
+        "Ocp-Apim-Subscription-Region": westus2
     }
     body = [{"Text": text}]
     response = requests.post(endpoint, headers=headers, json=body)
