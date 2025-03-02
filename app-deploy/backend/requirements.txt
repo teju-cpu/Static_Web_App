@@ -1,0 +1,5 @@
+Flask
+requests
+azure-ai-textanalytics
+azure-core
+azure-cognitiveservices-speech
